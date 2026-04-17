@@ -1,0 +1,30 @@
+---
+# Purpose: assert that the instance really ended up in the expected state.
+# Molecule calls this playbook with `molecule verify`.
+- name: Verify
+  hosts: all
+  gather_facts: true
+  vars:
+    expected_python_version: "3.12"
+  tasks:
+    - name: Print discovered python version
+      ansible.builtin.debug:
+        msg: "Discovered Python version: {{ ansible_facts['discovered_interpreter_python'] }}"
+
+    - name: "Assert Python {{ expected_python_version }} is installed"
+      when:
+        - ansible_facts['distribution_major_version'] is version('8', '<=')
+        - ansible_facts['distribution'] == 'CentOS'
+      ansible.builtin.assert:
+        that: "expected_python_version in ansible_facts['python_version']"
+        fail_msg: "Expected Python version {{ expected_python_version }} is not installed. Found version: {{ ansible_facts['python_version'] }}"
+        success_msg: "Expected Python version {{ expected_python_version }} is installed. Found version: {{ ansible_facts['python_version'] }}"
+
+    - name: "Assert Python {{ expected_python_version }} is installed"
+      when:
+        - ansible_facts['distribution_major_version'] is version('20', '<=')
+        - ansible_facts['distribution'] == 'Ubuntu'
+      ansible.builtin.assert:
+        that: "expected_python_version in ansible_facts['python_version']"
+        fail_msg: "Expected Python version {{ expected_python_version }} is not installed. Found version: {{ ansible_facts['python_version'] }}"
+        success_msg: "Expected Python version {{ expected_python_version }} is installed. Found version: {{ ansible_facts['python_version'] }}"

@@ -1,0 +1,69 @@
+---
+# Dependency management (download roles/collections)
+dependency:
+  name: galaxy
+  options:
+    ignore-certs: false
+    ignore-errors: false
+    role-file: requirements.yml
+    requirements-file: requirements.yml
+
+platforms:
+  - name: ubuntu1804
+    image_name: Ubuntu 18.04 64-bit
+
+  - name: ubuntu2004
+    image_name: Ubuntu 20.04 64-bit
+
+  - name: ubuntu2204
+    image_name: Ubuntu 22.04 64-bit
+
+  - name: ubuntu2404
+    image_name: Ubuntu 24.04 64-bit
+
+ansible:
+  cfg:
+    defaults:
+      host_key_checking: false
+      verbosity: 1
+    ssh_connection:
+      pipelining: true
+  env:
+    ANSIBLE_FORCE_COLOR: "1"
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
+
+  executor:
+    backend: ansible-playbook
+    args:
+      ansible_playbook:
+        - --diff
+        - --force-handlers
+        - --inventory=/path/to/inventory.yml
+      ansible_navigator:
+        - --mode stdout
+        - --pull-policy missing
+        - --execution-environment-image ghcr.io/ansible/community-ansible-dev-tools:latest
+
+  playbooks:
+    create: ../default/create.yml
+    converge: ../default/converge.yml
+    destroy: ../default/destroy.yml
+    cleanup:
+    prepare:
+    side_effect:
+    verify: ../default/verify.yml
+
+scenario:
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy
