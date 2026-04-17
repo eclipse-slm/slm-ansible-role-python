@@ -1,0 +1,10 @@
+---
+- name: Detect distribution id
+  ansible.builtin.raw: . /etc/os-release && echo ${ID:-unknown}
+  register: distro_id
+  failed_when: false
+  changed_when: false
+
+- name: Debug distribution id
+  ansible.builtin.debug:
+    var: distro_id.stdout | default('') | trim

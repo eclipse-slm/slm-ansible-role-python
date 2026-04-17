@@ -1,0 +1,18 @@
+---
+- name: Detect Python version
+  ansible.builtin.include_tasks: helper/get_python_version.yml
+
+- name: Get Distribution ID
+  ansible.builtin.include_tasks: helper/get_distribution_id.yml
+
+- name: Prepare (Debian)
+  when: distro_id.stdout | default('') | trim == 'debian'
+  ansible.builtin.include_tasks: dist-specific/prepare_debian.yml
+
+- name: Prepare (Ubuntu)
+  when: distro_id.stdout | default('') | trim == 'ubuntu'
+  ansible.builtin.include_tasks: dist-specific/prepare_ubuntu.yml
+
+- name: Prepare (CentOS)
+  when: distro_id.stdout | default('') | trim == 'centos'
+  ansible.builtin.include_tasks: dist-specific/prepare_centos.yml

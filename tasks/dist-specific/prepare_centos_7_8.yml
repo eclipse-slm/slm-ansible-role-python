@@ -1,0 +1,72 @@
+---
+- name: Set facts
+  ansible.builtin.set_fact:
+    python_source: "https://www.python.org/ftp/python/3.12.13/Python-3.12.13.tgz"
+    python_download_dst: "/tmp/Python-3.12.13.tgz"
+    python_extracted_dir: "/tmp/Python-3.12.13"
+    python_bin_path: "/usr/local/bin/python3.12"
+
+- name: Check if Python 3.12 is already installed
+  ansible.builtin.raw: "test -f {{ python_bin_path }}"
+  register: python_check
+  failed_when: false
+  changed_when: false
+
+- name: Download, Build and Install Python
+  when: python_check.rc != 0
+  block:
+    - name: Fix repo URLs
+      ansible.builtin.raw: |
+        sed -i 's/mirror\.centos\.org/vault.centos.org/g' /etc/yum.repos.d/CentOS-*.repo
+        sed -i 's/^#.*baseurl=http/baseurl=http/g' /etc/yum.repos.d/CentOS-*.repo
+        sed -i 's/^mirrorlist=http/#mirrorlist=http/g' /etc/yum.repos.d/CentOS-*.repo
+      changed_when: false
+
+    - name: Yum update and install centos-release-scl (CentOS 7)
+      when: centos_major_version == '7'
+      ansible.builtin.raw: |
+        yum update -y
+        yum install -y centos-release-scl
+      changed_when: false
+
+    - name: Fix repo URLs
+      ansible.builtin.raw: |
+        sed -i 's/mirror\.centos\.org/vault.centos.org/g' /etc/yum.repos.d/CentOS-*.repo
+        sed -i 's/^#.*baseurl=http/baseurl=http/g' /etc/yum.repos.d/CentOS-*.repo
+        sed -i 's/^mirrorlist=http/#mirrorlist=http/g' /etc/yum.repos.d/CentOS-*.repo
+      changed_when: false
+
+    - name: Set yum packages list (CentOS 7)
+      when: centos_major_version == '7'
+      ansible.builtin.set_fact:
+        yum_packages: "openssl11-devel libffi-devel bzip2-devel xz-devel wget"
+
+    - name: Set yum packages list (CentOS 8)
+      when: centos_major_version == '8'
+      ansible.builtin.set_fact:
+        yum_packages: "libffi-devel bzip2-devel xz-devel wget"
+
+    - name: Install Yum Packages
+      ansible.builtin.raw: |
+        yum groupinstall "Development Tools" -y
+        yum install epel-release -y
+        yum clean all
+        yum install -y {{ yum_packages }}
+      changed_when: false
+
+    - name: Download and Unzip Python
+      ansible.builtin.raw: |
+        wget -q {{ python_source }} -O {{ python_download_dst }}
+        tar -xf {{ python_download_dst }} -C /tmp
+      changed_when: false
+
+    - name: Build and install Python
+      ansible.builtin.raw: |
+        cd {{ python_extracted_dir }}
+        export CFLAGS=$(pkg-config --cflags openssl11)
+        export LDFLAGS=$(pkg-config --libs openssl11)
+        ./configure --with-openssl-rpath=auto
+        make -j $(nproc)
+        make altinstall
+      register: download_python
+      changed_when: false

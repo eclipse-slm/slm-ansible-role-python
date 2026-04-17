@@ -1,0 +1,18 @@
+---
+- name: Get Ubuntu version id
+  ansible.builtin.raw: . /etc/os-release && echo ${VERSION_ID:-unknown}
+  register: ubuntu_version_id_raw
+  failed_when: false
+  changed_when: false
+
+- name: Store Ubuntu major version
+  ansible.builtin.set_fact:
+    ubuntu_major_version: "{{ (ubuntu_version_id_raw.stdout | default('') | trim | regex_search('^([0-9]+)', '\\1'))[0] | default('unknown') }}"
+
+- name: Show detected Ubuntu major version
+  ansible.builtin.debug:
+    msg: "Detected Ubuntu major version: {{ ubuntu_major_version }}"
+
+- name: Update Python (Ubuntu <= 20)
+  when: ubuntu_major_version | int <= 20
+  ansible.builtin.include_tasks: dist-specific/prepare_ubuntu_18_20.yml

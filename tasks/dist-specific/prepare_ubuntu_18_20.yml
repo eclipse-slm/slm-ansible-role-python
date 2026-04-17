@@ -1,0 +1,50 @@
+---
+- name: Set facts
+  ansible.builtin.set_fact:
+    python_source: "https://www.python.org/ftp/python/3.12.13/Python-3.12.13.tgz"
+    python_download_dst: "/tmp/Python-3.12.13.tgz"
+    python_extracted_dir: "/tmp/Python-3.12.13"
+
+- name: Download Python source
+  ansible.builtin.raw: |
+    wget -q {{ python_source }} -O {{ python_download_dst }}
+  register: download_python
+  changed_when: false
+
+- name: Extract Python source
+  ansible.builtin.raw: |
+    tar -xf {{ python_download_dst }} -C /tmp
+  register: extract_python
+  changed_when: false
+
+- name: Update apt
+  ansible.builtin.raw: |
+    apt update
+  changed_when: false
+
+- name: Install build dependencies
+  ansible.builtin.raw: |
+    apt install --fix-missing -y build-essential zlib1g-dev libncurses5-dev \
+      libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
+  register: install_build_deps
+  changed_when: false
+  ignore_errors: true
+
+- name: Check if Python 3.12 is already installed
+  ansible.builtin.raw: test -e /usr/local/bin/python3.12 && echo '1' || echo '0'
+  register: check_python_312
+  failed_when: false
+  changed_when: false
+
+- name: Reset SSH connection to refresh environment
+  ansible.builtin.meta: reset_connection
+
+- name: Build and install Python
+  when: (check_python_312.stdout | replace('\r', '') | replace('\n', '') | trim) == '0'
+  ansible.builtin.raw: |
+    cd {{ python_extracted_dir }} && \
+    ./configure --enable-optimizations && \
+    make -j $(nproc) && \
+    make altinstall
+  register: build_install_python
+  changed_when: false

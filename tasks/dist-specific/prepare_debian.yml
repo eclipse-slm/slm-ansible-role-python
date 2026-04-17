@@ -1,0 +1,18 @@
+---
+- name: Get Debian version id
+  ansible.builtin.raw: . /etc/os-release && echo ${VERSION_ID:-unknown}
+  register: debian_version_id_raw
+  failed_when: false
+  changed_when: false
+
+- name: Store Debian major version
+  ansible.builtin.set_fact:
+    debian_major_version: "{{ (debian_version_id_raw.stdout | default('') | trim | regex_search('^([0-9]+)', '\\1'))[0] | default('unknown') }}"
+
+- name: Print Debian major version
+  ansible.builtin.debug:
+    msg: "Detected Debian major version: {{ debian_major_version }}"
+
+- name: Prepare Debian 11
+  when: debian_major_version == '11'
+  ansible.builtin.include_tasks: dist-specific/prepare_debian11.yml

@@ -1,0 +1,11 @@
+---
+- name: Replace mirror for bullseye-backports lines in sources.list
+  ansible.builtin.replace:
+    path: /etc/apt/sources.list
+    regexp: 'http://deb.debian.org/debian bullseye-backports'
+    replace: 'http://archive.debian.org/debian bullseye-backports'
+
+- name: Show contents of sources.list
+  ansible.builtin.command: cat /etc/apt/sources.list
+  register: sources_list_content
+  changed_when: false
