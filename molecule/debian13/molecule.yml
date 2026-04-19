@@ -9,8 +9,8 @@ dependency:
     requirements-file: requirements.yml
 
 platforms:
-  - name: debian12
-    image_name: Debian 12 64-bit
+  - name: debian13
+    image_name: Debian 13 64-bit
 
 ansible:
   cfg:

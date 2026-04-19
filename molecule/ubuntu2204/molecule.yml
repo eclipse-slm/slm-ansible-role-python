@@ -9,8 +9,8 @@ dependency:
     requirements-file: requirements.yml
 
 platforms:
-  - name: debian12
-    image_name: Debian 12 64-bit
+  - name: ubuntu2204
+    image_name: Ubuntu 22.04 64-bit
 
 ansible:
   cfg:

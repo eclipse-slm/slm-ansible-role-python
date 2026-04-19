@@ -9,8 +9,8 @@ dependency:
     requirements-file: requirements.yml
 
 platforms:
-  - name: debian12
-    image_name: Debian 12 64-bit
+  - name: centos10
+    image_name: CentOS 10 Stream 64-bit
 
 ansible:
   cfg:
