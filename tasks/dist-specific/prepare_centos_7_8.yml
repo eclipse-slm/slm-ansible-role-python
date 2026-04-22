@@ -44,7 +44,7 @@
     - name: Set yum packages list (CentOS 8)
       when: centos_major_version == '8'
       ansible.builtin.set_fact:
-        yum_packages: "libffi-devel bzip2-devel xz-devel wget"
+        yum_packages: "openssl-devel libffi-devel bzip2-devel xz-devel wget"
 
     - name: Install Yum Packages
       ansible.builtin.raw: |
@@ -70,3 +70,7 @@
         make altinstall
       register: download_python
       changed_when: false
+
+- name: Install "packaging" pip package
+  ansible.builtin.raw: "{{ python_bin_path }} -m pip install packaging"
+  changed_when: false
