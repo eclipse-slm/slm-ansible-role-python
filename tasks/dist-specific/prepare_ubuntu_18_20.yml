@@ -4,6 +4,7 @@
     python_source: "https://www.python.org/ftp/python/3.12.13/Python-3.12.13.tgz"
     python_download_dst: "/tmp/Python-3.12.13.tgz"
     python_extracted_dir: "/tmp/Python-3.12.13"
+    python_bin_path: "/usr/local/bin/python3.12"
 
 - name: Download Python source
   ansible.builtin.raw: |
@@ -47,4 +48,8 @@
     make -j $(nproc) && \
     make altinstall
   register: build_install_python
+  changed_when: false
+
+- name: Install "packaging" pip package
+  ansible.builtin.raw: "{{ python_bin_path }} -m pip install packaging"
   changed_when: false
