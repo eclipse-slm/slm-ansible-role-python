@@ -1,4 +1,4 @@
 ---
 roles:
   - name: ipa-big.molecule_openstack
-    version: 1.0.9
+    version: 1.0.10
