@@ -4,6 +4,7 @@
 - name: Verify
   hosts: all
   gather_facts: true
+  become: true
   vars:
     expected_min_python_version: "3.9"
   tasks:
@@ -19,3 +20,11 @@
         that: "ansible_facts['python_version'] is version(expected_min_python_version, '>=')"
         fail_msg: "Expected Python version {{ expected_min_python_version }} or higher is not installed. Found version: {{ ansible_facts['python_version'] }}"
         success_msg: "Expected Python version {{ expected_min_python_version }} or higher is installed. Found version: {{ ansible_facts['python_version'] }}"
+
+    - name: Test yum update (CentOS/RedHat)
+      when: ansible_facts['distribution'] in ['RedHat', 'CentOS']
+      ansible.builtin.command: yum update -y
+
+    - name: Test apt update (Ubuntu/Debian)
+      when: ansible_facts['distribution'] in ['Debian', 'Ubuntu']
+      ansible.builtin.command: apt update

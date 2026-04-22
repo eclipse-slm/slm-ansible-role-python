@@ -4,6 +4,7 @@
 - name: Verify
   hosts: all
   gather_facts: true
+  become: true
   vars:
     expected_python_version: "3.12"
   tasks:
@@ -28,3 +29,11 @@
         that: "expected_python_version in ansible_facts['python_version']"
         fail_msg: "Expected Python version {{ expected_python_version }} is not installed. Found version: {{ ansible_facts['python_version'] }}"
         success_msg: "Expected Python version {{ expected_python_version }} is installed. Found version: {{ ansible_facts['python_version'] }}"
+
+    - name: Test yum update (CentOS/RedHat)
+      when: ansible_facts['distribution'] in ['RedHat', 'CentOS']
+      ansible.builtin.command: yum update -y
+
+    - name: Test apt update (Ubuntu/Debian)
+      when: ansible_facts['distribution'] in ['Debian', 'Ubuntu']
+      ansible.builtin.command: apt update -y
