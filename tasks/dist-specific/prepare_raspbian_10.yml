@@ -1,0 +1,51 @@
+- name: Backup primary apt sources list
+  ansible.builtin.raw: |
+    test -e /etc/apt/sources.list.bak || cp -p /etc/apt/sources.list /etc/apt/sources.list.bak
+  changed_when: false
+
+- name: Comment out old Raspbian buster repository line
+  ansible.builtin.raw: |
+    sed -i -E 's|^(deb[[:space:]]+http://raspbian\.raspberrypi\.org/raspbian/[[:space:]]+buster\b.*)$|# \1|' /etc/apt/sources.list
+  changed_when: false
+
+- name: Add legacy Raspbian buster repository line
+  ansible.builtin.raw: |
+    grep -qxF 'deb https://legacy.raspbian.org/raspbian/ buster main contrib non-free rpi' /etc/apt/sources.list || \
+    printf '%s\n' 'deb https://legacy.raspbian.org/raspbian/ buster main contrib non-free rpi' >> /etc/apt/sources.list
+  changed_when: false
+
+- name: Backup Raspberry Pi repository list
+  ansible.builtin.raw: |
+    test ! -e /etc/apt/sources.list.d/raspi.list || \
+    test -e /etc/apt/sources.list.d/raspi.list.bak || \
+    cp -p /etc/apt/sources.list.d/raspi.list /etc/apt/sources.list.d/raspi.list.bak
+  changed_when: false
+
+- name: Comment out active buster lines in Raspberry Pi repository list
+  ansible.builtin.raw: |
+    test ! -e /etc/apt/sources.list.d/raspi.list || \
+    sed -i -E 's|^(deb[[:space:]]+.*\bbuster\b.*)$|# \1|' /etc/apt/sources.list.d/raspi.list
+  changed_when: false
+
+- name: Add Raspberry Pi archive repository line
+  ansible.builtin.raw: |
+    mkdir -p /etc/apt/sources.list.d
+    touch /etc/apt/sources.list.d/raspi.list
+    grep -qxF 'deb http://archive.raspberrypi.org/debian/ buster main' /etc/apt/sources.list.d/raspi.list || \
+    printf '%s\n' 'deb http://archive.raspberrypi.org/debian/ buster main' >> /etc/apt/sources.list.d/raspi.list
+  changed_when: false
+
+- name: Comment out active lines in buster-backports list
+  ansible.builtin.raw: |
+    if test -e /etc/apt/sources.list.d/buster-backports.list; then
+      sed -i -E 's|^(?!#)(.+)$|# \1|' /etc/apt/sources.list.d/buster-backports.list
+    fi
+  changed_when: false
+
+- name: Update apt cache allowing release info changes
+  ansible.builtin.raw: apt-get update --allow-releaseinfo-change
+  changed_when: false
+
+- name: Upgrade installed packages from configured repositories
+  ansible.builtin.raw: apt upgrade -y
+  changed_when: false

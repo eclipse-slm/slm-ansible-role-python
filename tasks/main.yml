@@ -13,6 +13,10 @@
   when: distro_id.stdout | default('') | trim == 'ubuntu'
   ansible.builtin.include_tasks: dist-specific/prepare_ubuntu.yml
 
+- name: Prepare (Raspbian)
+  when: distro_id.stdout | default('') | trim == 'raspbian'
+  ansible.builtin.include_tasks: dist-specific/prepare_raspbian.yml
+
 - name: Prepare (CentOS)
   when: distro_id.stdout | default('') | trim == 'centos'
   ansible.builtin.include_tasks: dist-specific/prepare_centos.yml
